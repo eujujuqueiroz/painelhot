@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Painel | Admin</title>
+    <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- Mobile Toggle Button -->
+    <button class="mobile-toggle" id="mobile-toggle">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <div class="logo">
+            <i class="fas fa-shield-alt"></i>
+            <span>Privacy Admin</span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="#dashboard" class="nav-item active" data-section="dashboard">
+                <i class="fas fa-th-large"></i> <span>Dashboard</span>
+            </a></li>
+            <li><a href="#profiles" class="nav-item" data-section="profiles">
+                <i class="fas fa-share-nodes"></i> <span>Perfis</span>
+            </a></li>
+            <li><a href="#subscribers" class="nav-item" data-section="subscribers">
+                <i class="fas fa-users"></i> <span>Assinantes</span>
+            </a></li>
+            <li><a href="#plans" class="nav-item" data-section="plans">
+                <i class="fas fa-tags"></i> <span>Planos</span>
+            </a></li>
+            <li><a href="#content" class="nav-item" data-section="content">
+                <i class="fas fa-images"></i> <span>Conteúdo</span>
+            </a></li>
+            <li><a href="#profile" class="nav-item" data-section="profile">
+                <i class="fas fa-user-edit"></i> <span>Perfil</span>
+            </a></li>
+            <li><a href="#settings" class="nav-item" data-section="settings">
+                <i class="fas fa-cog"></i> <span>Configurações</span>
+            </a></li>
+        </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="admin-section">
+            <header class="header">
+                <h1>Dashboard</h1>
+                <div class="user-info">
+                    <button class="btn-primary">Ver Perfil Público</button>
+                </div>
+            </header>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <span class="label">Faturamento Total</span>
+                    <div class="value">R$ 12.450,00</div>
+                    <div class="trend up"><i class="fas fa-arrow-up"></i> +12% este mês</div>
+                </div>
+                <div class="stat-card">
+                    <span class="label">Assinantes Ativos</span>
+                    <div class="value">151</div>
+                    <div class="trend up"><i class="fas fa-arrow-up"></i> +5 novos hoje</div>
+                </div>
+                <div class="stat-card">
+                    <span class="label">Visualizações de Perfil</span>
+                    <div class="value">3.820</div>
+                    <div class="trend"><i class="fas fa-eye"></i> +240 nas últimas 24h</div>
+                </div>
+            </div>
+
+            <div class="content-section">
+                <h2 class="section-title">Assinaturas Recentes</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Usuário</th>
+                            <th>Plano</th>
+                            <th>Data</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="user-cell">
+                                <img src="https://i.pravatar.cc/150?u=1" class="avatar-mini" alt="avatar">
+                                <span>João Silva</span>
+                            </td>
+                            <td>Mensal (R$ 29,90)</td>
+                            <td>Há 10 min</td>
+                            <td><span class="status-badge status-active">Ativo</span></td>
+                        </tr>
+                        <tr>
+                            <td class="user-cell">
+                                <img src="https://i.pravatar.cc/150?u=2" class="avatar-mini" alt="avatar">
+                                <span>Carlos Antunes</span>
+                            </td>
+                            <td>Trimestral (R$ 79,90)</td>
+                            <td>Há 1 hora</td>
+                            <td><span class="status-badge status-active">Ativo</span></td>
+                        </tr>
+                        <tr>
+                            <td class="user-cell">
+                                <img src="https://i.pravatar.cc/150?u=3" class="avatar-mini" alt="avatar">
+                                <span>Marcos Oliveira</span>
+                            </td>
+                            <td>Mensal (R$ 29,90)</td>
+                            <td>Há 3 horas</td>
+                            <td><span class="status-badge status-active">Ativo</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="profiles" class="admin-section" style="display: none;">
+            <header class="header">
+                <div>
+                    <h1>Perfis</h1>
+                    <p class="section-subtitle">Conecte canais sociais e publique lotes de videos em um unico disparo.</p>
+                </div>
+                <div class="header-actions">
+                    <button type="button" class="btn-secondary" id="clear-videos">Limpar fila</button>
+                    <button type="button" class="btn-primary" id="publish-all-videos">Publicar em 1 clique</button>
+                </div>
+            </header>
+
+            <div class="stats-grid profile-stats-grid">
+                <div class="stat-card">
+                    <span class="label">Redes conectadas</span>
+                    <div class="value" id="connected-count">0/5</div>
+                    <div class="trend"><i class="fas fa-plug-circle-check"></i> Instagram, TikTok, YouTube, X e Threads</div>
+                </div>
+                <div class="stat-card">
+                    <span class="label">Videos na fila</span>
+                    <div class="value" id="queued-videos-count">0</div>
+                    <div class="trend"><i class="fas fa-film"></i> Envie multiplos arquivos de uma vez</div>
+                </div>
+                <div class="stat-card">
+                    <span class="label">Distribuicoes por clique</span>
+                    <div class="value" id="distribution-count">0</div>
+                    <div class="trend"><i class="fas fa-bolt"></i> Cada video vai para todas as redes conectadas</div>
+                </div>
+            </div>
+
+            <div class="profiles-layout">
+                <div class="content-section">
+                    <div class="section-heading">
+                        <div>
+                            <h2 class="section-title">Conexoes sociais</h2>
+                            <p class="section-copy">Ative os canais que vao receber os videos do lote.</p>
+                        </div>
+                    </div>
+
+                    <div class="platform-list">
+                        <article class="platform-row" data-platform="instagram">
+                            <div class="platform-meta">
+                                <div class="platform-icon instagram"><i class="fab fa-instagram"></i></div>
+                                <div>
+                                    <h3>Instagram</h3>
+                                    <p class="platform-handle">Nao conectado</p>
+                                </div>
+                            </div>
+                            <span class="connection-badge disconnected">Desconectado</span>
+                            <button type="button" class="btn-platform connect-btn" data-platform="instagram">Conectar</button>
+                        </article>
+
+                        <article class="platform-row" data-platform="tiktok">
+                            <div class="platform-meta">
+                                <div class="platform-icon tiktok"><i class="fab fa-tiktok"></i></div>
+                                <div>
+                                    <h3>TikTok</h3>
+                                    <p class="platform-handle">Nao conectado</p>
+                                </div>
+                            </div>
+                            <span class="connection-badge disconnected">Desconectado</span>
+                            <button type="button" class="btn-platform connect-btn" data-platform="tiktok">Conectar</button>
+                        </article>
+
+                        <article class="platform-row" data-platform="youtube">
+                            <div class="platform-meta">
+                                <div class="platform-icon youtube"><i class="fab fa-youtube"></i></div>
+                                <div>
+                                    <h3>YouTube</h3>
+                                    <p class="platform-handle">Nao conectado</p>
+                                </div>
+                            </div>
+                            <span class="connection-badge disconnected">Desconectado</span>
+                            <button type="button" class="btn-platform connect-btn" data-platform="youtube">Conectar</button>
+                        </article>
+
+                        <article class="platform-row" data-platform="x">
+                            <div class="platform-meta">
+                                <div class="platform-icon x"><i class="fa-brands fa-x-twitter"></i></div>
+                                <div>
+                                    <h3>X</h3>
+                                    <p class="platform-handle">Nao conectado</p>
+                                </div>
+                            </div>
+                            <span class="connection-badge disconnected">Desconectado</span>
+                            <button type="button" class="btn-platform connect-btn" data-platform="x">Conectar</button>
+                        </article>
+
+                        <article class="platform-row" data-platform="threads">
+                            <div class="platform-meta">
+                                <div class="platform-icon threads"><i class="fa-brands fa-threads"></i></div>
+                                <div>
+                                    <h3>Threads</h3>
+                                    <p class="platform-handle">Nao conectado</p>
+                                </div>
+                            </div>
+                            <span class="connection-badge disconnected">Desconectado</span>
+                            <button type="button" class="btn-platform connect-btn" data-platform="threads">Conectar</button>
+                        </article>
+                    </div>
+                </div>
+
+                <div class="content-section">
+                    <div class="section-heading">
+                        <div>
+                            <h2 class="section-title">Publicacao em lote</h2>
+                            <p class="section-copy">Selecione quantos videos quiser e distribua o mesmo lote para todos os perfis conectados.</p>
+                        </div>
+                    </div>
+
+                    <label class="upload-dropzone" for="video-upload">
+                        <input type="file" id="video-upload" accept="video/*" multiple hidden>
+                        <div class="upload-dropzone-icon">
+                            <i class="fas fa-cloud-arrow-up"></i>
+                        </div>
+                        <div class="upload-dropzone-copy">
+                            <strong>Selecionar videos</strong>
+                            <span>Arraste arquivos ou clique para montar a fila de publicacao.</span>
+                        </div>
+                    </label>
+
+                    <div class="publish-summary">
+                        <div class="summary-item">
+                            <span class="summary-label">Destino atual</span>
+                            <strong id="active-destinations">Nenhuma rede conectada</strong>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Janela de envio</span>
+                            <strong>Imediata</strong>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Lote pronto</span>
+                            <strong id="publish-ready-state">Aguardando videos</strong>
+                        </div>
+                    </div>
+
+                    <div class="publish-feedback" id="profiles-feedback">
+                        Conecte ao menos uma rede e adicione videos para disparar a publicacao em lote.
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-section queue-section">
+                <div class="section-heading section-heading-spread">
+                    <div>
+                        <h2 class="section-title">Fila de envio</h2>
+                        <p class="section-copy">Revise cada arquivo antes de publicar em 1 clique.</p>
+                    </div>
+                    <span class="queue-meta" id="queue-meta">0 arquivos carregados</span>
+                </div>
+
+                <div class="video-queue empty" id="video-queue">
+                    <div class="empty-state">
+                        <i class="fas fa-photo-film"></i>
+                        <p>Nenhum video carregado ainda.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-section queue-section">
+                <div class="section-heading section-heading-spread">
+                    <div>
+                        <h2 class="section-title">Ultimo disparo</h2>
+                        <p class="section-copy">Resumo da ultima publicacao em lote feita nesta sessao.</p>
+                    </div>
+                    <span class="queue-meta" id="profiles-last-run">Aguardando primeira publicacao</span>
+                </div>
+
+                <div class="publish-log-list empty" id="publish-log">
+                    <div class="empty-state">
+                        <i class="fas fa-wave-square"></i>
+                        <p>O historico do disparo vai aparecer aqui.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Plans Section -->
+        <section id="plans" class="admin-section" style="display: none;">
+            <header class="header">
+                <h1>Gerenciar Planos</h1>
+            </header>
+            <div class="content-section">
+                <form id="plans-form">
+                    <div class="stat-card" style="margin-bottom: 20px; border-left: 4px solid var(--primary);">
+                        <h3 style="margin-bottom: 15px; font-size: 16px;">Plano 1 Mês</h3>
+                        <div class="form-group">
+                            <label>Nome do Plano</label>
+                            <input type="text" class="form-control plan-name" data-plan="1-month" value="1 mês">
+                        </div>
+                        <div class="form-group">
+                            <label>Preço (R$)</label>
+                            <input type="text" class="form-control plan-price" data-plan="1-month" value="40,00">
+                        </div>
+                    </div>
+
+                    <div class="stat-card" style="margin-bottom: 20px; border-left: 4px solid var(--primary);">
+                        <h3 style="margin-bottom: 15px; font-size: 16px;">Plano 3 Meses</h3>
+                        <div class="form-group">
+                            <label>Nome do Plano</label>
+                            <input type="text" class="form-control plan-name" data-plan="3-month" value="3 meses">
+                        </div>
+                        <div class="form-group">
+                            <label>Preço (R$)</label>
+                            <input type="text" class="form-control plan-price" data-plan="3-month" value="120,00">
+                        </div>
+                    </div>
+
+                    <div class="stat-card" style="margin-bottom: 20px; border-left: 4px solid var(--primary);">
+                        <h3 style="margin-bottom: 15px; font-size: 16px;">Plano 6 Meses</h3>
+                        <div class="form-group">
+                            <label>Nome do Plano</label>
+                            <input type="text" class="form-control plan-name" data-plan="6-month" value="6 meses">
+                        </div>
+                        <div class="form-group">
+                            <label>Preço (R$)</label>
+                            <input type="text" class="form-control plan-price" data-plan="6-month" value="240,00">
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn-primary" id="save-plans">Salvar Planos</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- Profile Section (Hidden initially) -->
+        <section id="profile" class="admin-section" style="display: none;">
+            <header class="header">
+                <h1>Editar Perfil</h1>
+            </header>
+            <div class="content-section">
+                <form id="profile-form">
+                    <div class="form-group">
+                        <label>Nome de Exibição</label>
+                        <input type="text" class="form-control" value="eujujuqueiroz">
+                    </div>
+                    <div class="form-group">
+                        <label>Bio (Biografia)</label>
+                        <textarea class="form-control" rows="4">Sejam bem-vindos ao meu mundo exclusivo! 💋</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Preço da Assinatura (Mensal)</label>
+                        <input type="text" class="form-control" value="R$ 29,90">
+                    </div>
+                    <button type="button" class="btn-primary">Salvar Alterações</button>
+                </form>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="admin.js"></script>
+</body>
+</html>
