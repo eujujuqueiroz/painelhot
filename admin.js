@@ -107,6 +107,8 @@ document.addEventListener('DOMContentLoaded', () => {
         feedbackOverride: null,
         admin: null
     };
+    const ADMIN_STATE_CACHE_KEY = 'privacy-admin-state';
+    const ADMIN_STATE_EVENT_KEY = 'privacy-admin-state-updated';
 
     let supabaseBrowserModulePromise = null;
 
@@ -226,6 +228,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         state.admin = adminState;
+
+        try {
+            window.localStorage.setItem(ADMIN_STATE_CACHE_KEY, JSON.stringify({
+                updatedAt: Date.now(),
+                state: adminState
+            }));
+            window.localStorage.setItem(ADMIN_STATE_EVENT_KEY, String(Date.now()));
+        } catch (error) {
+            // Local sync is only a shortcut for open checkout tabs; Supabase remains the source of truth.
+        }
     }
 
     async function adminApiRequest(method, payload) {

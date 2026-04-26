@@ -5,8 +5,25 @@ import {
     writeAdminState
 } from './_lib/adminStore.js';
 
+const NO_STORE_HEADERS = {
+    'cache-control': 'no-store, no-cache, must-revalidate, max-age=0',
+    pragma: 'no-cache',
+    expires: '0'
+};
+
 function json(data, init = {}) {
-    return Response.json(data, init);
+    const headers = new Headers(init.headers || {});
+
+    Object.entries(NO_STORE_HEADERS).forEach(([key, value]) => {
+        if (!headers.has(key)) {
+            headers.set(key, value);
+        }
+    });
+
+    return Response.json(data, {
+        ...init,
+        headers
+    });
 }
 
 function errorJson(message, status = 500, details = null) {
