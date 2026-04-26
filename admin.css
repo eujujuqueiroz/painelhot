@@ -773,6 +773,10 @@ td {
     color: #c2410c;
 }
 
+.modal-shell[hidden] {
+    display: none !important;
+}
+
 .modal-shell {
     position: fixed;
     inset: 0;
