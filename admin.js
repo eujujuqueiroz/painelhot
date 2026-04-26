@@ -340,6 +340,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderAdminState() {
         const admin = state.admin;
         const dashboard = getAdminDashboard();
+        const shouldSyncAdminInputs = !state.isAdminSaving;
 
         if (dashboardRevenue) {
             dashboardRevenue.textContent = dashboard.totalRevenue || 'R$ 0,00';
@@ -371,27 +372,27 @@ document.addEventListener('DOMContentLoaded', () => {
         (admin?.plans || []).forEach((plan) => {
             const nameInput = document.querySelector(`.plan-name[data-plan="${plan.id}"]`);
             const priceInput = document.querySelector(`.plan-price[data-plan="${plan.id}"]`);
-            if (nameInput && document.activeElement !== nameInput) {
+            if (shouldSyncAdminInputs && nameInput && document.activeElement !== nameInput) {
                 nameInput.value = plan.name || '';
             }
-            if (priceInput && document.activeElement !== priceInput) {
+            if (shouldSyncAdminInputs && priceInput && document.activeElement !== priceInput) {
                 priceInput.value = plan.price || '';
             }
         });
 
-        if (profileDisplayNameInput && document.activeElement !== profileDisplayNameInput) {
+        if (shouldSyncAdminInputs && profileDisplayNameInput && document.activeElement !== profileDisplayNameInput) {
             profileDisplayNameInput.value = admin?.profile?.displayName || '';
         }
-        if (profileBioInput && document.activeElement !== profileBioInput) {
+        if (shouldSyncAdminInputs && profileBioInput && document.activeElement !== profileBioInput) {
             profileBioInput.value = admin?.profile?.bio || '';
         }
-        if (profileMonthlyPriceInput && document.activeElement !== profileMonthlyPriceInput) {
+        if (shouldSyncAdminInputs && profileMonthlyPriceInput && document.activeElement !== profileMonthlyPriceInput) {
             profileMonthlyPriceInput.value = admin?.profile?.monthlyPrice || '';
         }
-        if (profileAvatarPreview) {
+        if (shouldSyncAdminInputs && profileAvatarPreview) {
             profileAvatarPreview.src = admin?.profile?.avatarUrl || 'perfil.jpg';
         }
-        if (profileCoverPreview) {
+        if (shouldSyncAdminInputs && profileCoverPreview) {
             profileCoverPreview.src = admin?.profile?.coverUrl || 'banner.jpg';
         }
         if (settingsSupabaseStatus) {
@@ -961,6 +962,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function saveProfile() {
+        const profilePayload = {
+            displayName: profileDisplayNameInput ? profileDisplayNameInput.value : '',
+            bio: profileBioInput ? profileBioInput.value : '',
+            monthlyPrice: profileMonthlyPriceInput ? profileMonthlyPriceInput.value : ''
+        };
+
         try {
             state.isAdminSaving = true;
             setAdminStatus(profileStatus, '', 'Salvando perfil...');
@@ -968,11 +975,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const data = await adminApiRequest('POST', {
                 action: 'save-profile',
-                profile: {
-                    displayName: profileDisplayNameInput ? profileDisplayNameInput.value : '',
-                    bio: profileBioInput ? profileBioInput.value : '',
-                    monthlyPrice: profileMonthlyPriceInput ? profileMonthlyPriceInput.value : ''
-                }
+                profile: profilePayload
             });
             applyAdminState(data.state);
             setAdminStatus(profileStatus, 'ready', data.message || 'Perfil salvo em producao.');
@@ -1025,21 +1028,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function savePlans() {
+        const plans = Array.from(document.querySelectorAll('.plan-name')).map((nameInput) => {
+            const planId = nameInput.getAttribute('data-plan');
+            const priceInput = document.querySelector(`.plan-price[data-plan="${planId}"]`);
+
+            return {
+                id: planId,
+                name: nameInput.value,
+                price: priceInput ? priceInput.value : ''
+            };
+        });
+
         try {
             state.isAdminSaving = true;
             setAdminStatus(plansStatus, '', 'Salvando planos...');
             renderAdminState();
-
-            const plans = Array.from(document.querySelectorAll('.plan-name')).map((nameInput) => {
-                const planId = nameInput.getAttribute('data-plan');
-                const priceInput = document.querySelector(`.plan-price[data-plan="${planId}"]`);
-
-                return {
-                    id: planId,
-                    name: nameInput.value,
-                    price: priceInput ? priceInput.value : ''
-                };
-            });
 
             const data = await adminApiRequest('POST', {
                 action: 'save-plans',
