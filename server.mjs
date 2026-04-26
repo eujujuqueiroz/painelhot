@@ -2,6 +2,7 @@ import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { GET as adminGet, POST as adminPost } from './api/admin.js';
 import { GET as socialGet, POST as socialPost } from './api/social.js';
 import { GET as socialAuthGet } from './api/social-auth.js';
 
@@ -64,6 +65,16 @@ function resolveStaticPath(urlPathname) {
 const server = createServer(async (req, res) => {
     try {
         const requestUrl = new URL(req.url, `http://${req.headers.host}`);
+
+        if (requestUrl.pathname === '/api/admin') {
+            const webRequest = await toWebRequest(req);
+            const webResponse = req.method === 'POST'
+                ? await adminPost(webRequest)
+                : await adminGet(webRequest);
+
+            await sendWebResponse(res, webResponse);
+            return;
+        }
 
         if (requestUrl.pathname === '/api/social') {
             const webRequest = await toWebRequest(req);

@@ -60,18 +60,18 @@
             <div class="stats-grid">
                 <div class="stat-card">
                     <span class="label">Faturamento Total</span>
-                    <div class="value">R$ 12.450,00</div>
-                    <div class="trend up"><i class="fas fa-arrow-up"></i> +12% este mês</div>
+                    <div class="value" id="dashboard-revenue">R$ 0,00</div>
+                    <div class="trend" id="dashboard-revenue-trend"><i class="fas fa-database"></i> Aguardando dados reais</div>
                 </div>
                 <div class="stat-card">
                     <span class="label">Assinantes Ativos</span>
-                    <div class="value">151</div>
-                    <div class="trend up"><i class="fas fa-arrow-up"></i> +5 novos hoje</div>
+                    <div class="value" id="dashboard-active-subscribers">0</div>
+                    <div class="trend" id="dashboard-active-trend"><i class="fas fa-user-check"></i> Nenhum assinante sincronizado</div>
                 </div>
                 <div class="stat-card">
                     <span class="label">Visualizações de Perfil</span>
-                    <div class="value">3.820</div>
-                    <div class="trend"><i class="fas fa-eye"></i> +240 nas últimas 24h</div>
+                    <div class="value" id="dashboard-profile-views">0</div>
+                    <div class="trend" id="dashboard-views-trend"><i class="fas fa-eye"></i> Aguardando analytics real</div>
                 </div>
             </div>
 
@@ -86,33 +86,33 @@
                             <th>Status</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="recent-subscriptions-body">
                         <tr>
-                            <td class="user-cell">
-                                <img src="https://i.pravatar.cc/150?u=1" class="avatar-mini" alt="avatar">
-                                <span>João Silva</span>
-                            </td>
-                            <td>Mensal (R$ 29,90)</td>
-                            <td>Há 10 min</td>
-                            <td><span class="status-badge status-active">Ativo</span></td>
+                            <td colspan="4" class="empty-table-cell">Nenhuma assinatura real sincronizada ainda.</td>
                         </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="subscribers" class="admin-section" style="display: none;">
+            <header class="header">
+                <h1>Assinantes</h1>
+            </header>
+            <div class="content-section">
+                <h2 class="section-title">Base de assinantes</h2>
+                <table>
+                    <thead>
                         <tr>
-                            <td class="user-cell">
-                                <img src="https://i.pravatar.cc/150?u=2" class="avatar-mini" alt="avatar">
-                                <span>Carlos Antunes</span>
-                            </td>
-                            <td>Trimestral (R$ 79,90)</td>
-                            <td>Há 1 hora</td>
-                            <td><span class="status-badge status-active">Ativo</span></td>
+                            <th>Usuário</th>
+                            <th>Plano</th>
+                            <th>Valor</th>
+                            <th>Status</th>
                         </tr>
+                    </thead>
+                    <tbody id="subscribers-table-body">
                         <tr>
-                            <td class="user-cell">
-                                <img src="https://i.pravatar.cc/150?u=3" class="avatar-mini" alt="avatar">
-                                <span>Marcos Oliveira</span>
-                            </td>
-                            <td>Mensal (R$ 29,90)</td>
-                            <td>Há 3 horas</td>
-                            <td><span class="status-badge status-active">Ativo</span></td>
+                            <td colspan="4" class="empty-table-cell">Nenhum assinante real sincronizado ainda.</td>
                         </tr>
                     </tbody>
                 </table>
@@ -381,11 +381,11 @@
                         <h3 style="margin-bottom: 15px; font-size: 16px;">Plano 1 Mês</h3>
                         <div class="form-group">
                             <label>Nome do Plano</label>
-                            <input type="text" class="form-control plan-name" data-plan="1-month" value="1 mês">
+                            <input type="text" class="form-control plan-name" data-plan="1-month" value="">
                         </div>
                         <div class="form-group">
                             <label>Preço (R$)</label>
-                            <input type="text" class="form-control plan-price" data-plan="1-month" value="40,00">
+                            <input type="text" class="form-control plan-price" data-plan="1-month" value="">
                         </div>
                     </div>
 
@@ -393,11 +393,11 @@
                         <h3 style="margin-bottom: 15px; font-size: 16px;">Plano 3 Meses</h3>
                         <div class="form-group">
                             <label>Nome do Plano</label>
-                            <input type="text" class="form-control plan-name" data-plan="3-month" value="3 meses">
+                            <input type="text" class="form-control plan-name" data-plan="3-month" value="">
                         </div>
                         <div class="form-group">
                             <label>Preço (R$)</label>
-                            <input type="text" class="form-control plan-price" data-plan="3-month" value="120,00">
+                            <input type="text" class="form-control plan-price" data-plan="3-month" value="">
                         </div>
                     </div>
 
@@ -405,15 +405,16 @@
                         <h3 style="margin-bottom: 15px; font-size: 16px;">Plano 6 Meses</h3>
                         <div class="form-group">
                             <label>Nome do Plano</label>
-                            <input type="text" class="form-control plan-name" data-plan="6-month" value="6 meses">
+                            <input type="text" class="form-control plan-name" data-plan="6-month" value="">
                         </div>
                         <div class="form-group">
                             <label>Preço (R$)</label>
-                            <input type="text" class="form-control plan-price" data-plan="6-month" value="240,00">
+                            <input type="text" class="form-control plan-price" data-plan="6-month" value="">
                         </div>
                     </div>
 
                     <button type="button" class="btn-primary" id="save-plans">Salvar Planos</button>
+                    <div class="admin-status" id="plans-status"></div>
                 </form>
             </div>
         </section>
@@ -427,18 +428,51 @@
                 <form id="profile-form">
                     <div class="form-group">
                         <label>Nome de Exibição</label>
-                        <input type="text" class="form-control" value="eujujuqueiroz">
+                        <input type="text" class="form-control" id="profile-display-name" value="">
                     </div>
                     <div class="form-group">
                         <label>Bio (Biografia)</label>
-                        <textarea class="form-control" rows="4">Sejam bem-vindos ao meu mundo exclusivo! 💋</textarea>
+                        <textarea class="form-control" id="profile-bio" rows="4"></textarea>
                     </div>
                     <div class="form-group">
                         <label>Preço da Assinatura (Mensal)</label>
-                        <input type="text" class="form-control" value="R$ 29,90">
+                        <input type="text" class="form-control" id="profile-monthly-price" value="">
                     </div>
-                    <button type="button" class="btn-primary">Salvar Alterações</button>
+                    <button type="button" class="btn-primary" id="save-profile">Salvar Alterações</button>
+                    <div class="admin-status" id="profile-status"></div>
                 </form>
+            </div>
+        </section>
+
+        <section id="content" class="admin-section" style="display: none;">
+            <header class="header">
+                <h1>Conteúdo</h1>
+            </header>
+            <div class="content-section">
+                <h2 class="section-title">Conteúdo público</h2>
+                <div class="empty-state">
+                    <i class="fas fa-images"></i>
+                    <p id="content-production-status">Nenhum conteúdo real sincronizado no painel administrativo.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="settings" class="admin-section" style="display: none;">
+            <header class="header">
+                <h1>Configurações</h1>
+            </header>
+            <div class="content-section">
+                <h2 class="section-title">Ambiente de produção</h2>
+                <div class="settings-list" id="settings-status-list">
+                    <div class="settings-row">
+                        <span>Supabase</span>
+                        <strong id="settings-supabase-status">Verificando...</strong>
+                    </div>
+                    <div class="settings-row">
+                        <span>Última sincronização</span>
+                        <strong id="settings-updated-at">Aguardando</strong>
+                    </div>
+                </div>
             </div>
         </section>
 

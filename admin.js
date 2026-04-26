@@ -35,6 +35,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const startConnectBtn = document.getElementById('start-connect-btn');
     const closePlatformModalBtn = document.getElementById('close-platform-modal');
     const cancelPlatformBtn = document.getElementById('cancel-platform-btn');
+    const dashboardRevenue = document.getElementById('dashboard-revenue');
+    const dashboardRevenueTrend = document.getElementById('dashboard-revenue-trend');
+    const dashboardActiveSubscribers = document.getElementById('dashboard-active-subscribers');
+    const dashboardActiveTrend = document.getElementById('dashboard-active-trend');
+    const dashboardProfileViews = document.getElementById('dashboard-profile-views');
+    const dashboardViewsTrend = document.getElementById('dashboard-views-trend');
+    const recentSubscriptionsBody = document.getElementById('recent-subscriptions-body');
+    const subscribersTableBody = document.getElementById('subscribers-table-body');
+    const plansStatus = document.getElementById('plans-status');
+    const profileStatus = document.getElementById('profile-status');
+    const savePlansBtn = document.getElementById('save-plans');
+    const saveProfileBtn = document.getElementById('save-profile');
+    const profileDisplayNameInput = document.getElementById('profile-display-name');
+    const profileBioInput = document.getElementById('profile-bio');
+    const profileMonthlyPriceInput = document.getElementById('profile-monthly-price');
+    const settingsSupabaseStatus = document.getElementById('settings-supabase-status');
+    const settingsUpdatedAt = document.getElementById('settings-updated-at');
 
     const platformDefinitions = {
         instagram: { key: 'instagram', label: 'Instagram' },
@@ -78,10 +95,13 @@ document.addEventListener('DOMContentLoaded', () => {
         lastRunAt: null,
         isLoading: false,
         isPublishing: false,
+        isAdminLoading: false,
+        isAdminSaving: false,
         pendingUploads: 0,
         storageClient: null,
         currentModalPlatformKey: '',
-        feedbackOverride: null
+        feedbackOverride: null,
+        admin: null
     };
 
     let supabaseBrowserModulePromise = null;
@@ -179,6 +199,180 @@ document.addEventListener('DOMContentLoaded', () => {
             message,
             expiresAt: Date.now() + durationMs
         };
+    }
+
+    function setAdminStatus(target, type, message) {
+        if (!target) {
+            return;
+        }
+
+        target.classList.remove('is-ready', 'is-error');
+        if (type === 'ready') {
+            target.classList.add('is-ready');
+        }
+        if (type === 'error') {
+            target.classList.add('is-error');
+        }
+        target.textContent = message || '';
+    }
+
+    function applyAdminState(adminState) {
+        if (!adminState) {
+            return;
+        }
+
+        state.admin = adminState;
+    }
+
+    async function adminApiRequest(method, payload) {
+        const response = await fetch('/api/admin', {
+            method,
+            headers: {
+                'content-type': 'application/json'
+            },
+            body: payload ? JSON.stringify(payload) : undefined
+        });
+
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || data.ok === false) {
+            throw new Error(data.error || data.details || 'Falha ao falar com a central administrativa.');
+        }
+
+        return data;
+    }
+
+    function getAdminDashboard() {
+        return state.admin?.dashboard || {
+            totalRevenue: 'R$ 0,00',
+            activeSubscribers: 0,
+            profileViews: 0,
+            profileViewsDelta24h: 0,
+            recentSubscribers: []
+        };
+    }
+
+    function formatSubscriberDate(dateLike) {
+        if (!dateLike) {
+            return 'Sem data';
+        }
+
+        const date = new Date(dateLike);
+        if (Number.isNaN(date.getTime())) {
+            return 'Sem data';
+        }
+
+        return new Intl.DateTimeFormat('pt-BR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        }).format(date);
+    }
+
+    function formatSubscriberStatus(status) {
+        const labels = {
+            active: 'Ativo',
+            inactive: 'Inativo',
+            pending: 'Pendente',
+            cancelled: 'Cancelado'
+        };
+
+        return labels[status] || 'Indefinido';
+    }
+
+    function getSubscriberStatusClass(status) {
+        return ['active', 'pending', 'inactive', 'cancelled'].includes(status)
+            ? `status-${status}`
+            : 'status-inactive';
+    }
+
+    function renderSubscriberRows(subscribers, options = {}) {
+        const showAmount = options.showAmount !== false;
+        const columns = 4;
+
+        if (!Array.isArray(subscribers) || !subscribers.length) {
+            return `
+                <tr>
+                    <td colspan="${columns}" class="empty-table-cell">Nenhum assinante real sincronizado ainda.</td>
+                </tr>
+            `;
+        }
+
+        return subscribers.map((subscriber) => `
+            <tr>
+                <td class="user-cell">
+                    ${subscriber.avatarUrl ? `<img src="${escapeHtml(subscriber.avatarUrl)}" class="avatar-mini" alt="">` : '<span class="avatar-mini"></span>'}
+                    <span>${escapeHtml(subscriber.name || subscriber.email || 'Assinante')}</span>
+                </td>
+                <td>${escapeHtml(subscriber.planName || 'Plano nao informado')}</td>
+                <td>${showAmount ? escapeHtml(subscriber.amountCents ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(subscriber.amountCents / 100) : 'R$ 0,00') : escapeHtml(formatSubscriberDate(subscriber.createdAt))}</td>
+                <td><span class="status-badge ${escapeHtml(getSubscriberStatusClass(subscriber.status))}">${escapeHtml(formatSubscriberStatus(subscriber.status))}</span></td>
+            </tr>
+        `).join('');
+    }
+
+    function renderAdminState() {
+        const admin = state.admin;
+        const dashboard = getAdminDashboard();
+
+        if (dashboardRevenue) {
+            dashboardRevenue.textContent = dashboard.totalRevenue || 'R$ 0,00';
+        }
+        if (dashboardRevenueTrend) {
+            dashboardRevenueTrend.innerHTML = '<i class="fas fa-database"></i> Calculado a partir de assinantes reais';
+        }
+        if (dashboardActiveSubscribers) {
+            dashboardActiveSubscribers.textContent = String(dashboard.activeSubscribers || 0);
+        }
+        if (dashboardActiveTrend) {
+            dashboardActiveTrend.innerHTML = dashboard.activeSubscribers
+                ? '<i class="fas fa-user-check"></i> Base ativa sincronizada'
+                : '<i class="fas fa-user-check"></i> Nenhum assinante sincronizado';
+        }
+        if (dashboardProfileViews) {
+            dashboardProfileViews.textContent = new Intl.NumberFormat('pt-BR').format(Number(dashboard.profileViews || 0));
+        }
+        if (dashboardViewsTrend) {
+            dashboardViewsTrend.innerHTML = `<i class="fas fa-eye"></i> ${Number(dashboard.profileViewsDelta24h || 0)} nas ultimas 24h`;
+        }
+        if (recentSubscriptionsBody) {
+            recentSubscriptionsBody.innerHTML = renderSubscriberRows(dashboard.recentSubscribers || [], { showAmount: false });
+        }
+        if (subscribersTableBody) {
+            subscribersTableBody.innerHTML = renderSubscriberRows(admin?.subscribers || [], { showAmount: true });
+        }
+
+        (admin?.plans || []).forEach((plan) => {
+            const nameInput = document.querySelector(`.plan-name[data-plan="${plan.id}"]`);
+            const priceInput = document.querySelector(`.plan-price[data-plan="${plan.id}"]`);
+            if (nameInput && document.activeElement !== nameInput) {
+                nameInput.value = plan.name || '';
+            }
+            if (priceInput && document.activeElement !== priceInput) {
+                priceInput.value = plan.price || '';
+            }
+        });
+
+        if (profileDisplayNameInput && document.activeElement !== profileDisplayNameInput) {
+            profileDisplayNameInput.value = admin?.profile?.displayName || '';
+        }
+        if (profileBioInput && document.activeElement !== profileBioInput) {
+            profileBioInput.value = admin?.profile?.bio || '';
+        }
+        if (profileMonthlyPriceInput && document.activeElement !== profileMonthlyPriceInput) {
+            profileMonthlyPriceInput.value = admin?.profile?.monthlyPrice || '';
+        }
+        if (settingsSupabaseStatus) {
+            settingsSupabaseStatus.textContent = state.admin ? 'Conectado' : 'Aguardando conexao';
+        }
+        if (settingsUpdatedAt) {
+            settingsUpdatedAt.textContent = formatRunTime(admin?.updatedAt);
+        }
+        if (savePlansBtn) {
+            savePlansBtn.disabled = state.isAdminLoading || state.isAdminSaving;
+        }
+        if (saveProfileBtn) {
+            saveProfileBtn.disabled = state.isAdminLoading || state.isAdminSaving;
+        }
     }
 
     function applyServerState(serverState) {
@@ -711,6 +905,77 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    async function loadAdminState() {
+        state.isAdminLoading = true;
+        renderAdminState();
+
+        try {
+            const data = await adminApiRequest('GET');
+            applyAdminState(data.state);
+        } catch (error) {
+            setAdminStatus(profileStatus, 'error', getErrorMessage(error, 'Nao foi possivel carregar o painel real.'));
+            setAdminStatus(plansStatus, 'error', getErrorMessage(error, 'Nao foi possivel carregar os planos reais.'));
+        } finally {
+            state.isAdminLoading = false;
+            renderAdminState();
+        }
+    }
+
+    async function saveProfile() {
+        try {
+            state.isAdminSaving = true;
+            setAdminStatus(profileStatus, '', 'Salvando perfil...');
+            renderAdminState();
+
+            const data = await adminApiRequest('POST', {
+                action: 'save-profile',
+                profile: {
+                    displayName: profileDisplayNameInput ? profileDisplayNameInput.value : '',
+                    bio: profileBioInput ? profileBioInput.value : '',
+                    monthlyPrice: profileMonthlyPriceInput ? profileMonthlyPriceInput.value : ''
+                }
+            });
+            applyAdminState(data.state);
+            setAdminStatus(profileStatus, 'ready', data.message || 'Perfil salvo em producao.');
+        } catch (error) {
+            setAdminStatus(profileStatus, 'error', getErrorMessage(error, 'Nao foi possivel salvar o perfil.'));
+        } finally {
+            state.isAdminSaving = false;
+            renderAdminState();
+        }
+    }
+
+    async function savePlans() {
+        try {
+            state.isAdminSaving = true;
+            setAdminStatus(plansStatus, '', 'Salvando planos...');
+            renderAdminState();
+
+            const plans = Array.from(document.querySelectorAll('.plan-name')).map((nameInput) => {
+                const planId = nameInput.getAttribute('data-plan');
+                const priceInput = document.querySelector(`.plan-price[data-plan="${planId}"]`);
+
+                return {
+                    id: planId,
+                    name: nameInput.value,
+                    price: priceInput ? priceInput.value : ''
+                };
+            });
+
+            const data = await adminApiRequest('POST', {
+                action: 'save-plans',
+                plans
+            });
+            applyAdminState(data.state);
+            setAdminStatus(plansStatus, 'ready', data.message || 'Planos salvos em producao.');
+        } catch (error) {
+            setAdminStatus(plansStatus, 'error', getErrorMessage(error, 'Nao foi possivel salvar os planos.'));
+        } finally {
+            state.isAdminSaving = false;
+            renderAdminState();
+        }
+    }
+
     async function disconnectCurrentPlatform() {
         const platformKey = state.currentModalPlatformKey;
         const platform = state.platforms[platformKey];
@@ -1004,31 +1269,17 @@ document.addEventListener('DOMContentLoaded', () => {
         cancelPlatformBtn.addEventListener('click', closePlatformModal);
     }
 
-    const profileForm = document.getElementById('profile-form');
-    if (profileForm) {
-        const profileButton = profileForm.querySelector('button');
-        if (profileButton) {
-            profileButton.addEventListener('click', () => {
-                alert('Perfil atualizado com sucesso!');
-            });
-        }
+    if (saveProfileBtn) {
+        saveProfileBtn.addEventListener('click', saveProfile);
     }
 
-    const savePlansBtn = document.getElementById('save-plans');
     if (savePlansBtn) {
-        savePlansBtn.addEventListener('click', () => {
-            const plans = [
-                { id: '1-month', name: document.querySelector('.plan-name[data-plan="1-month"]').value, price: document.querySelector('.plan-price[data-plan="1-month"]').value },
-                { id: '3-month', name: document.querySelector('.plan-name[data-plan="3-month"]').value, price: document.querySelector('.plan-price[data-plan="3-month"]').value },
-                { id: '6-month', name: document.querySelector('.plan-name[data-plan="6-month"]').value, price: document.querySelector('.plan-price[data-plan="6-month"]').value }
-            ];
-
-            alert('Planos sincronizados com a pagina de checkout!');
-            console.log('Novos planos:', plans);
-        });
+        savePlansBtn.addEventListener('click', savePlans);
     }
 
     readInitialRouteState();
+    renderAdminState();
     refreshProfilesSurface();
+    loadAdminState();
     loadProfilesState();
 });
