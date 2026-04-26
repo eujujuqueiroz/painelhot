@@ -426,6 +426,30 @@
             </header>
             <div class="content-section">
                 <form id="profile-form">
+                    <div class="profile-media-grid">
+                        <div class="profile-media-card">
+                            <div class="profile-media-preview profile-media-preview-avatar">
+                                <img id="profile-avatar-preview" src="perfil.jpg" alt="Foto de perfil">
+                            </div>
+                            <div class="profile-media-info">
+                                <strong>Foto de perfil</strong>
+                                <span>Imagem principal exibida no checkout.</span>
+                            </div>
+                            <label class="btn-ghost" for="profile-avatar-input">Alterar foto</label>
+                            <input type="file" id="profile-avatar-input" accept="image/*" hidden>
+                        </div>
+                        <div class="profile-media-card">
+                            <div class="profile-media-preview profile-media-preview-cover">
+                                <img id="profile-cover-preview" src="banner.jpg" alt="Banner do perfil">
+                            </div>
+                            <div class="profile-media-info">
+                                <strong>Banner</strong>
+                                <span>Capa exibida no topo do perfil publico.</span>
+                            </div>
+                            <label class="btn-ghost" for="profile-cover-input">Alterar banner</label>
+                            <input type="file" id="profile-cover-input" accept="image/*" hidden>
+                        </div>
+                    </div>
                     <div class="form-group">
                         <label>Nome de Exibição</label>
                         <input type="text" class="form-control" id="profile-display-name" value="">

@@ -5,7 +5,11 @@ const ADMIN_STATE_VERSION = 1;
 const DEFAULT_PROFILE = {
     displayName: 'eujujuqueiroz',
     bio: 'A melhor ninfeta do privacy, venha me ver da melhor forma, novinha, magrinha, natural e ruiva e especialista em squirting \u2764\uFE0F\uD83D\uDD25',
-    monthlyPrice: '40,00'
+    monthlyPrice: '40,00',
+    avatarPath: '',
+    coverPath: '',
+    avatarUrl: 'perfil.jpg',
+    coverUrl: 'banner.jpg'
 };
 const DEFAULT_PLANS = [
     { id: '1-month', name: '1 m\u00EAs', price: '40,00' },
@@ -71,7 +75,11 @@ function normalizeProfile(profile = {}) {
     return {
         displayName: textOrFallback(profile.displayName, DEFAULT_PROFILE.displayName),
         bio: textOrFallback(profile.bio, DEFAULT_PROFILE.bio),
-        monthlyPrice: textOrFallback(profile.monthlyPrice, DEFAULT_PROFILE.monthlyPrice)
+        monthlyPrice: textOrFallback(profile.monthlyPrice, DEFAULT_PROFILE.monthlyPrice),
+        avatarPath: typeof profile.avatarPath === 'string' ? profile.avatarPath.trim() : DEFAULT_PROFILE.avatarPath,
+        coverPath: typeof profile.coverPath === 'string' ? profile.coverPath.trim() : DEFAULT_PROFILE.coverPath,
+        avatarUrl: textOrFallback(profile.avatarUrl, DEFAULT_PROFILE.avatarUrl),
+        coverUrl: textOrFallback(profile.coverUrl, DEFAULT_PROFILE.coverUrl)
     };
 }
 
@@ -183,12 +191,41 @@ export function buildDashboard(state) {
     };
 }
 
-export function toAdminClientState(state) {
+async function getSignedMediaUrl(client, path, fallbackUrl) {
+    if (!client || !path) {
+        return fallbackUrl;
+    }
+
+    const { data, error } = await client.storage
+        .from(getBucketName())
+        .createSignedUrl(path, 60 * 60 * 24 * 7);
+
+    if (error || !data?.signedUrl) {
+        return fallbackUrl;
+    }
+
+    return data.signedUrl;
+}
+
+export async function toAdminClientState(state, client = null) {
     const normalizedState = normalizeAdminState(state);
+    const profile = {
+        ...normalizedState.profile,
+        avatarUrl: await getSignedMediaUrl(
+            client,
+            normalizedState.profile.avatarPath,
+            normalizedState.profile.avatarUrl
+        ),
+        coverUrl: await getSignedMediaUrl(
+            client,
+            normalizedState.profile.coverPath,
+            normalizedState.profile.coverUrl
+        )
+    };
 
     return {
         updatedAt: normalizedState.updatedAt,
-        profile: normalizedState.profile,
+        profile,
         plans: normalizedState.plans,
         subscribers: normalizedState.subscribers,
         metrics: normalizedState.metrics,

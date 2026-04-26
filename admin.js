@@ -50,6 +50,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const profileDisplayNameInput = document.getElementById('profile-display-name');
     const profileBioInput = document.getElementById('profile-bio');
     const profileMonthlyPriceInput = document.getElementById('profile-monthly-price');
+    const profileAvatarInput = document.getElementById('profile-avatar-input');
+    const profileCoverInput = document.getElementById('profile-cover-input');
+    const profileAvatarPreview = document.getElementById('profile-avatar-preview');
+    const profileCoverPreview = document.getElementById('profile-cover-preview');
     const settingsSupabaseStatus = document.getElementById('settings-supabase-status');
     const settingsUpdatedAt = document.getElementById('settings-updated-at');
 
@@ -241,6 +245,20 @@ document.addEventListener('DOMContentLoaded', () => {
         return data;
     }
 
+    async function adminFormRequest(formData) {
+        const response = await fetch('/api/admin', {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || data.ok === false) {
+            throw new Error(data.error || data.details || 'Falha ao falar com a central administrativa.');
+        }
+
+        return data;
+    }
+
     function getAdminDashboard() {
         return state.admin?.dashboard || {
             totalRevenue: 'R$ 0,00',
@@ -361,6 +379,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (profileMonthlyPriceInput && document.activeElement !== profileMonthlyPriceInput) {
             profileMonthlyPriceInput.value = admin?.profile?.monthlyPrice || '';
         }
+        if (profileAvatarPreview) {
+            profileAvatarPreview.src = admin?.profile?.avatarUrl || 'perfil.jpg';
+        }
+        if (profileCoverPreview) {
+            profileCoverPreview.src = admin?.profile?.coverUrl || 'banner.jpg';
+        }
         if (settingsSupabaseStatus) {
             settingsSupabaseStatus.textContent = state.admin ? 'Conectado' : 'Aguardando conexao';
         }
@@ -372,6 +396,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (saveProfileBtn) {
             saveProfileBtn.disabled = state.isAdminLoading || state.isAdminSaving;
+        }
+        if (profileAvatarInput) {
+            profileAvatarInput.disabled = state.isAdminLoading || state.isAdminSaving;
+        }
+        if (profileCoverInput) {
+            profileCoverInput.disabled = state.isAdminLoading || state.isAdminSaving;
         }
     }
 
@@ -945,6 +975,46 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    async function uploadProfileMedia(mediaType, file) {
+        if (!file) {
+            return;
+        }
+        if (!file.type || !file.type.startsWith('image/')) {
+            setAdminStatus(profileStatus, 'error', 'Envie um arquivo de imagem valido.');
+            return;
+        }
+
+        try {
+            state.isAdminSaving = true;
+            setAdminStatus(
+                profileStatus,
+                '',
+                mediaType === 'avatar' ? 'Enviando foto de perfil...' : 'Enviando banner...'
+            );
+            renderAdminState();
+
+            const formData = new FormData();
+            formData.append('action', 'upload-profile-media');
+            formData.append('mediaType', mediaType);
+            formData.append('file', file);
+
+            const data = await adminFormRequest(formData);
+            applyAdminState(data.state);
+            setAdminStatus(profileStatus, 'ready', data.message || 'Imagem salva em producao.');
+        } catch (error) {
+            setAdminStatus(profileStatus, 'error', getErrorMessage(error, 'Nao foi possivel salvar a imagem.'));
+        } finally {
+            state.isAdminSaving = false;
+            if (mediaType === 'avatar' && profileAvatarInput) {
+                profileAvatarInput.value = '';
+            }
+            if (mediaType === 'cover' && profileCoverInput) {
+                profileCoverInput.value = '';
+            }
+            renderAdminState();
+        }
+    }
+
     async function savePlans() {
         try {
             state.isAdminSaving = true;
@@ -1271,6 +1341,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (saveProfileBtn) {
         saveProfileBtn.addEventListener('click', saveProfile);
+    }
+
+    if (profileAvatarInput) {
+        profileAvatarInput.addEventListener('change', (event) => {
+            uploadProfileMedia('avatar', event.target.files?.[0]);
+        });
+    }
+
+    if (profileCoverInput) {
+        profileCoverInput.addEventListener('change', (event) => {
+            uploadProfileMedia('cover', event.target.files?.[0]);
+        });
     }
 
     if (savePlansBtn) {

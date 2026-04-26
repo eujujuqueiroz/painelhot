@@ -1,4 +1,4 @@
-import { createSupabaseAdminClient } from './_lib/socialHub.js';
+import { createSupabaseAdminClient, getBucketName, sanitizeFilename } from './_lib/socialHub.js';
 import {
     readAdminState,
     toAdminClientState,
@@ -28,6 +28,30 @@ function normalizePlanInput(plan = {}) {
     };
 }
 
+function getRequestContentType(request) {
+    return request.headers.get('content-type') || '';
+}
+
+function buildProfileMediaPath(mediaType, filename) {
+    const now = new Date();
+    const year = now.getUTCFullYear();
+    const month = String(now.getUTCMonth() + 1).padStart(2, '0');
+    return `profile/${mediaType}/${year}/${month}/${crypto.randomUUID()}-${sanitizeFilename(filename || `${mediaType}.jpg`)}`;
+}
+
+async function parseAdminRequestBody(request) {
+    const contentType = getRequestContentType(request).toLowerCase();
+    if (contentType.includes('multipart/form-data')) {
+        const formData = await request.formData();
+        return {
+            action: String(formData.get('action') || ''),
+            formData
+        };
+    }
+
+    return request.json();
+}
+
 export async function GET() {
     try {
         const client = createSupabaseAdminClient();
@@ -35,7 +59,7 @@ export async function GET() {
 
         return json({
             ok: true,
-            state: toAdminClientState(state)
+            state: await toAdminClientState(state, client)
         });
     } catch (error) {
         return errorJson(
@@ -50,7 +74,7 @@ export async function POST(request) {
     let body = {};
 
     try {
-        body = await request.json();
+        body = await parseAdminRequestBody(request);
     } catch (error) {
         return errorJson('Payload invalido.', 400);
     }
@@ -63,6 +87,7 @@ export async function POST(request) {
 
         if (action === 'save-profile') {
             state.profile = {
+                ...state.profile,
                 displayName: typeof body.profile?.displayName === 'string' ? body.profile.displayName : '',
                 bio: typeof body.profile?.bio === 'string' ? body.profile.bio : '',
                 monthlyPrice: typeof body.profile?.monthlyPrice === 'string' ? body.profile.monthlyPrice : ''
@@ -76,7 +101,55 @@ export async function POST(request) {
             return json({
                 ok: true,
                 message: 'Perfil salvo em producao.',
-                state: toAdminClientState(state)
+                state: await toAdminClientState(state, client)
+            });
+        }
+
+        if (action === 'upload-profile-media') {
+            const mediaType = String(body.formData?.get('mediaType') || '');
+            const file = body.formData?.get('file');
+
+            if (!['avatar', 'cover'].includes(mediaType)) {
+                return errorJson('Tipo de imagem invalido.', 400);
+            }
+            if (!file || typeof file.arrayBuffer !== 'function') {
+                return errorJson('Envie uma imagem valida.', 400);
+            }
+            if (file.size > 8 * 1024 * 1024) {
+                return errorJson('A imagem deve ter no maximo 8 MB.', 400);
+            }
+            if (file.type && !file.type.startsWith('image/')) {
+                return errorJson('O arquivo precisa ser uma imagem.', 400);
+            }
+
+            const storagePath = buildProfileMediaPath(mediaType, file.name);
+            const { error: uploadError } = await client.storage
+                .from(getBucketName())
+                .upload(
+                    storagePath,
+                    new Blob([await file.arrayBuffer()], { type: file.type || 'image/jpeg' }),
+                    {
+                        upsert: true,
+                        contentType: file.type || 'image/jpeg'
+                    }
+                );
+
+            if (uploadError) {
+                throw uploadError;
+            }
+
+            state.profile = {
+                ...state.profile,
+                ...(mediaType === 'avatar' ? { avatarPath: storagePath } : { coverPath: storagePath })
+            };
+            state = await writeAdminState(client, state);
+
+            return json({
+                ok: true,
+                message: mediaType === 'avatar'
+                    ? 'Foto de perfil salva em producao.'
+                    : 'Banner salvo em producao.',
+                state: await toAdminClientState(state, client)
             });
         }
 
@@ -98,7 +171,7 @@ export async function POST(request) {
             return json({
                 ok: true,
                 message: 'Planos salvos em producao.',
-                state: toAdminClientState(state)
+                state: await toAdminClientState(state, client)
             });
         }
 
