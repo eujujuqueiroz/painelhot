@@ -53,7 +53,7 @@
             <header class="header">
                 <h1>Dashboard</h1>
                 <div class="user-info">
-                    <button class="btn-primary">Ver Perfil Público</button>
+                    <a class="btn-primary" href="./Privacy%20%EF%BD%9C%20Checkout%20eujujuqueiroz.html">Ver Perfil Público</a>
                 </div>
             </header>
 
@@ -165,6 +165,7 @@
                                 <div>
                                     <h3>Instagram</h3>
                                     <p class="platform-handle">Nao conectado</p>
+                                    <p class="platform-detail">Nenhum endpoint configurado</p>
                                 </div>
                             </div>
                             <span class="connection-badge disconnected">Desconectado</span>
@@ -177,6 +178,7 @@
                                 <div>
                                     <h3>TikTok</h3>
                                     <p class="platform-handle">Nao conectado</p>
+                                    <p class="platform-detail">Nenhum endpoint configurado</p>
                                 </div>
                             </div>
                             <span class="connection-badge disconnected">Desconectado</span>
@@ -189,6 +191,7 @@
                                 <div>
                                     <h3>YouTube</h3>
                                     <p class="platform-handle">Nao conectado</p>
+                                    <p class="platform-detail">Nenhum endpoint configurado</p>
                                 </div>
                             </div>
                             <span class="connection-badge disconnected">Desconectado</span>
@@ -201,6 +204,7 @@
                                 <div>
                                     <h3>X</h3>
                                     <p class="platform-handle">Nao conectado</p>
+                                    <p class="platform-detail">Nenhum endpoint configurado</p>
                                 </div>
                             </div>
                             <span class="connection-badge disconnected">Desconectado</span>
@@ -213,6 +217,7 @@
                                 <div>
                                     <h3>Threads</h3>
                                     <p class="platform-handle">Nao conectado</p>
+                                    <p class="platform-detail">Nenhum endpoint configurado</p>
                                 </div>
                             </div>
                             <span class="connection-badge disconnected">Desconectado</span>
@@ -239,6 +244,16 @@
                             <span>Arraste arquivos ou clique para montar a fila de publicacao.</span>
                         </div>
                     </label>
+
+                    <div class="dropzone-note" id="upload-progress-note">
+                        Os arquivos entram no Storage primeiro e depois ficam prontos para o disparo em lote.
+                    </div>
+
+                    <div class="form-group batch-caption-group">
+                        <label for="publish-caption">Legenda / descricao base do lote</label>
+                        <textarea id="publish-caption" class="form-control" rows="4" placeholder="Opcional. Essa mensagem vira legenda, descricao ou texto base de publicacao."></textarea>
+                        <div class="field-note">O mesmo texto e reutilizado no lote inteiro. Cada rede aplica seus limites e formato final.</div>
+                    </div>
 
                     <div class="publish-summary">
                         <div class="summary-item">
@@ -295,6 +310,65 @@
                 </div>
             </div>
         </section>
+
+        <div class="modal-shell" id="platform-modal" hidden>
+            <div class="modal-backdrop" data-close-platform-modal></div>
+            <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="platform-modal-title">
+                <div class="modal-header">
+                    <div>
+                        <h2 id="platform-modal-title">Conectar perfil</h2>
+                        <p class="modal-copy">Veja os requisitos dessa rede, confira a callback e inicie a autorizacao oficial da conta.</p>
+                    </div>
+                    <button type="button" class="icon-button" id="close-platform-modal" aria-label="Fechar configuracao">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <div class="platform-connect-form">
+                    <div class="platform-modal-grid">
+                        <div class="summary-item">
+                            <span class="summary-label">Status</span>
+                            <strong id="platform-modal-status">Desconectado</strong>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Autenticacao</span>
+                            <strong id="platform-modal-auth">OAuth</strong>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Publicacao</span>
+                            <strong id="platform-modal-publish">Upload nativo</strong>
+                        </div>
+                    </div>
+
+                    <div class="platform-modal-panel">
+                        <div class="modal-detail-row">
+                            <span>Conta atual</span>
+                            <strong id="platform-modal-account">Nenhuma conta conectada</strong>
+                        </div>
+                        <div class="modal-detail-row">
+                            <span>Callback</span>
+                            <code id="platform-modal-callback">-</code>
+                        </div>
+                        <div class="modal-detail-row">
+                            <span>Requisitos</span>
+                            <p id="platform-modal-requirements">-</p>
+                        </div>
+                    </div>
+
+                    <div class="platform-missing-list" id="platform-modal-missing"></div>
+
+                    <div class="modal-feedback" id="platform-modal-feedback"></div>
+
+                    <div class="modal-actions">
+                        <button type="button" class="btn-ghost" id="disconnect-platform-btn">Desconectar</button>
+                        <div class="modal-actions-right">
+                            <button type="button" class="btn-secondary" id="cancel-platform-btn">Fechar</button>
+                            <button type="button" class="btn-primary" id="start-connect-btn">Conectar conta</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- Plans Section -->
         <section id="plans" class="admin-section" style="display: none;">
