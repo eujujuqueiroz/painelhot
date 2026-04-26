@@ -107,10 +107,17 @@ document.addEventListener('DOMContentLoaded', () => {
         feedbackOverride: null,
         admin: null
     };
-    const ADMIN_STATE_CACHE_KEY = 'privacy-admin-state';
-    const ADMIN_STATE_EVENT_KEY = 'privacy-admin-state-updated';
+    const LEGACY_ADMIN_STATE_CACHE_KEYS = ['privacy-admin-state', 'privacy-admin-state-updated'];
 
     let supabaseBrowserModulePromise = null;
+
+    function clearLegacyAdminStateCache() {
+        try {
+            LEGACY_ADMIN_STATE_CACHE_KEYS.forEach((key) => window.localStorage.removeItem(key));
+        } catch (error) {
+            // The real state lives in Supabase; local cleanup is best effort.
+        }
+    }
 
     function escapeHtml(value) {
         return String(value)
@@ -228,16 +235,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         state.admin = adminState;
-
-        try {
-            window.localStorage.setItem(ADMIN_STATE_CACHE_KEY, JSON.stringify({
-                updatedAt: Date.now(),
-                state: adminState
-            }));
-            window.localStorage.setItem(ADMIN_STATE_EVENT_KEY, String(Date.now()));
-        } catch (error) {
-            // Local sync is only a shortcut for open checkout tabs; Supabase remains the source of truth.
-        }
     }
 
     async function adminApiRequest(method, payload) {
@@ -1373,6 +1370,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     readInitialRouteState();
     renderAdminState();
+    clearLegacyAdminStateCache();
     refreshProfilesSurface();
     loadAdminState();
     loadProfilesState();
