@@ -67,6 +67,10 @@ export async function POST(request) {
                 bio: typeof body.profile?.bio === 'string' ? body.profile.bio : '',
                 monthlyPrice: typeof body.profile?.monthlyPrice === 'string' ? body.profile.monthlyPrice : ''
             };
+            state.plans = state.plans.map((plan) => plan.id === '1-month'
+                ? { ...plan, price: state.profile.monthlyPrice }
+                : plan
+            );
 
             state = await writeAdminState(client, state);
             return json({
@@ -83,6 +87,13 @@ export async function POST(request) {
             }
 
             state.plans = plans;
+            const monthlyPlan = plans.find((plan) => plan.id === '1-month');
+            if (monthlyPlan?.price) {
+                state.profile = {
+                    ...state.profile,
+                    monthlyPrice: monthlyPlan.price
+                };
+            }
             state = await writeAdminState(client, state);
             return json({
                 ok: true,

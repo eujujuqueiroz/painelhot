@@ -2,6 +2,21 @@ import { ensureBucket, getBucketName } from './socialHub.js';
 
 const ADMIN_STATE_PATH = 'system/admin-state.json';
 const ADMIN_STATE_VERSION = 1;
+const DEFAULT_PROFILE = {
+    displayName: 'eujujuqueiroz',
+    bio: 'A melhor ninfeta do privacy, venha me ver da melhor forma, novinha, magrinha, natural e ruiva e especialista em squirting \u2764\uFE0F\uD83D\uDD25',
+    monthlyPrice: '40,00'
+};
+const DEFAULT_PLANS = [
+    { id: '1-month', name: '1 m\u00EAs', price: '40,00' },
+    { id: '3-month', name: '3 meses', price: '120,00' },
+    { id: '6-month', name: '6 meses', price: '240,00' }
+];
+
+function textOrFallback(value, fallback = '') {
+    const text = typeof value === 'string' ? value.trim() : '';
+    return text || fallback;
+}
 
 function normalizeCurrencyText(value) {
     return String(value || '')
@@ -23,14 +38,16 @@ function centsToCurrency(cents) {
     }).format((Number(cents) || 0) / 100);
 }
 
-function normalizePlan(plan = {}) {
+function normalizePlan(plan = {}, fallback = {}) {
+    const price = textOrFallback(plan.price, fallback.price || '');
+
     return {
-        id: typeof plan.id === 'string' && plan.id ? plan.id : crypto.randomUUID(),
-        name: typeof plan.name === 'string' ? plan.name.trim() : '',
-        price: typeof plan.price === 'string' ? plan.price.trim() : '',
-        priceCents: Number.isFinite(Number(plan.priceCents))
-            ? Number(plan.priceCents)
-            : currencyToCents(plan.price)
+        id: textOrFallback(plan.id, fallback.id || crypto.randomUUID()),
+        name: textOrFallback(plan.name, fallback.name || ''),
+        price,
+        priceCents: price
+            ? currencyToCents(price)
+            : Number.isFinite(Number(plan.priceCents)) ? Number(plan.priceCents) : 0
     };
 }
 
@@ -52,9 +69,9 @@ function normalizeSubscriber(subscriber = {}) {
 
 function normalizeProfile(profile = {}) {
     return {
-        displayName: typeof profile.displayName === 'string' ? profile.displayName.trim() : '',
-        bio: typeof profile.bio === 'string' ? profile.bio.trim() : '',
-        monthlyPrice: typeof profile.monthlyPrice === 'string' ? profile.monthlyPrice.trim() : ''
+        displayName: textOrFallback(profile.displayName, DEFAULT_PROFILE.displayName),
+        bio: textOrFallback(profile.bio, DEFAULT_PROFILE.bio),
+        monthlyPrice: textOrFallback(profile.monthlyPrice, DEFAULT_PROFILE.monthlyPrice)
     };
 }
 
@@ -70,11 +87,7 @@ export function buildDefaultAdminState() {
         version: ADMIN_STATE_VERSION,
         updatedAt: null,
         profile: normalizeProfile(),
-        plans: [
-            { id: '1-month', name: '', price: '', priceCents: 0 },
-            { id: '3-month', name: '', price: '', priceCents: 0 },
-            { id: '6-month', name: '', price: '', priceCents: 0 }
-        ],
+        plans: DEFAULT_PLANS.map((plan) => normalizePlan(plan)),
         subscribers: [],
         metrics: normalizeMetrics()
     };
@@ -82,15 +95,23 @@ export function buildDefaultAdminState() {
 
 export function normalizeAdminState(rawState = {}) {
     const baseState = buildDefaultAdminState();
-    const rawPlans = Array.isArray(rawState.plans) && rawState.plans.length
-        ? rawState.plans
-        : baseState.plans;
+    const rawPlans = Array.isArray(rawState.plans) ? rawState.plans : [];
+    const defaultPlanIds = new Set(baseState.plans.map((plan) => plan.id));
+    const plans = [
+        ...baseState.plans.map((defaultPlan) => normalizePlan(
+            rawPlans.find((plan) => plan?.id === defaultPlan.id) || {},
+            defaultPlan
+        )),
+        ...rawPlans
+            .filter((plan) => plan?.id && !defaultPlanIds.has(plan.id))
+            .map((plan) => normalizePlan(plan))
+    ];
 
     return {
         version: ADMIN_STATE_VERSION,
         updatedAt: typeof rawState.updatedAt === 'string' ? rawState.updatedAt : null,
         profile: normalizeProfile(rawState.profile || baseState.profile),
-        plans: rawPlans.map(normalizePlan),
+        plans,
         subscribers: Array.isArray(rawState.subscribers) ? rawState.subscribers.map(normalizeSubscriber) : [],
         metrics: normalizeMetrics(rawState.metrics)
     };
